@@ -16,35 +16,45 @@ app.post('/action', async (req, res) => {
     const { router, voucher, action } = req.body;
 
     const selectedRouter = routers.find(r => r.name === router);
-    if(!selectedRouter) return res.send("Router not found");
+    if (!selectedRouter) return res.send("Router not found");
 
     const conn = new RouterOSClient({
         host: selectedRouter.host,
         user: selectedRouter.user,
-        password: selectedRouter.password
+        password: selectedRouter.password,
+        port: 8728 // important
     });
 
     try {
         await conn.connect();
 
-        // Replace with real API commands
-        if(action === 'enable'){
-            // await conn.menu('/tool/user-manager/user/add').call({username: voucher});
-        } else if(action === 'disable'){
-            // await conn.menu('/tool/user-manager/user/disable').call({numbers: voucher});
-        } else if(action === 'reset'){
-            // await conn.menu('/tool/user-manager/user/reset-counters').call({numbers: voucher});
-        } else if(action === 'search'){
-            // Search command placeholder
+        if (action === 'enable') {
+            await conn.write('/ip/hotspot/user/enable', [
+                '=numbers=' + voucher
+            ]);
+        } 
+        else if (action === 'disable') {
+            await conn.write('/ip/hotspot/user/disable', [
+                '=numbers=' + voucher
+            ]);
+        } 
+        else if (action === 'reset') {
+            await conn.write('/ip/hotspot/user/reset-counters', [
+                '=numbers=' + voucher
+            ]);
+        } 
+        else if (action === 'search') {
+            const result = await conn.write('/ip/hotspot/user/print', [
+                '?name=' + voucher
+            ]);
+            await conn.close();
+            return res.send(JSON.stringify(result));
         }
 
         await conn.close();
-        res.send(`Action '${action}' executed for voucher '${voucher}' on ${router}`);
-    } catch(err) {
+        res.send(`Action ${action} done on ${voucher}`);
+    } catch (err) {
         console.log(err);
-        res.send("Error: " + err);
+        res.send("Error: " + err.message);
     }
 });
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log("Server running on port " + port));
