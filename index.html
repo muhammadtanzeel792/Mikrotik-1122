@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mikrotik Voucher Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .panel {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        select, input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+        button.enable { background-color: green; color: white; }
+        button.disable { background-color: red; color: white; }
+        button.reset { background-color: orange; color: white; }
+        button.search { background-color: blue; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <h2>Mikrotik Voucher Panel</h2>
+
+    <!-- Router dropdown -->
+    <select id="router" name="router">
+        <option value="Router1">Router1</option>
+        <option value="Router2">Router2</option>
+        <option value="Router3">Router3</option>
+    </select>
+
+    <!-- Voucher search field -->
+    <input type="text" id="voucher" placeholder="Enter Voucher Number">
+
+    <!-- Buttons -->
+    <div>
+        <button class="search" onclick="performAction('search')">Search</button>
+        <button class="enable" onclick="performAction('enable')">Enable</button>
+        <button class="disable" onclick="performAction('disable')">Disable</button>
+        <button class="reset" onclick="performAction('reset')">Reset Counter</button>
+    </div>
+
+    <p id="response" style="margin-top:15px;"></p>
+</div>
+
+<script>
+    async function performAction(action) {
+        const router = document.getElementById('router').value;
+        const voucher = document.getElementById('voucher').value;
+        if(!voucher) {
+            alert("Please enter voucher number");
+            return;
+        }
+
+        const formData = new URLSearchParams();
+        formData.append('router', router);
+        formData.append('voucher', voucher);
+        formData.append('action', action);
+
+        try {
+            const res = await fetch('/action', {
+                method: 'POST',
+                body: formData
+            });
+            const text = await res.text();
+            document.getElementById('response').innerText = text;
+        } catch(err) {
+            document.getElementById('response').innerText = "Error: " + err;
+        }
+    }
+</script>
+
+</body>
+  </html>
